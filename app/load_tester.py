@@ -38,7 +38,7 @@ class HTTPLoadTester:
                 latency: float = time.perf_counter() - start_time
                 self.load_test_stats.results[str(response.status)].append(latency)
         except Exception:
-            self.load_test_stats.results['error'].append(time.time() - start_time)
+            self.load_test_stats.results['error'].append(time.perf_counter() - start_time)
 
     async def generate_load(self, duration: int, qps: Optional[int] = None) -> None:
         """
