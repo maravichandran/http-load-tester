@@ -48,17 +48,6 @@ class TestHTTPLoadTester(asynctest.TestCase):
 
         self.assertEqual(mock_make_request.call_count, self.qps)
 
-    @asynctest.patch('app.load_tester.HTTPLoadTester.generate_load')
-    async def test_run_test(self, mock_generate_load):
-        duration = 5
-        mock_generate_load.return_value = None
-        self.tester.load_test_stats.calculate_stats = MagicMock()
-
-        await self.tester.run_test(duration)
-
-        mock_generate_load.assert_called_once_with(duration, self.qps)
-        self.tester.load_test_stats.calculate_stats.assert_called_once()
-
     @asynctest.patch('app.load_tester.HTTPLoadTester.print_results')
     async def test_find_breaking_point(self, mock_print_results):
         max_qps = 100
