@@ -18,27 +18,27 @@ Please note that the unit of time for all below terminal commands is seconds.
 ### Running a single load test
 To run the container with default arguments (`qps=20`, `duration=5`):
 ```bash
-docker run http-load-tester http://example.com
+docker run http-load-tester --url http://example.com
 ```
 
 To run the container with custom arguments:
 ```bash
-docker run http-load-tester http://example.com --qps 20 --duration 5
+docker run http-load-tester --url http://example.com --qps 5 --duration 5
 ```
 
 An example output of the above command is below:
 ```txt
 Results for http://example.com
-Total requests: 100
+Total requests: 25
 Total errors: 0
 Error rate: 0.000%
-Mean latency: 47.345 milliseconds
-Median latency: 41.492 milliseconds
-Min latency: 15.457 milliseconds
-Max latency: 121.339 milliseconds
+Mean latency: 18.347 milliseconds
+Median latency: 17.637 milliseconds
+Min latency: 11.618 milliseconds
+Max latency: 40.071 milliseconds
 
 Status code distribution:
-  200: 100
+  200: 25
 ```
 
 ### Automatically finding the breaking point of the server
@@ -46,55 +46,55 @@ If you'd like to find the highest qps (queries per second) that the server can h
 
 You can change the url, duration, max qps, max error rate, and max latency as needed. 
 ```bash
- docker run http-load-tester http://apple.com --find-breaking-point --duration=8 --max-qps 1000 --max-error-rate 0.01 --max-latency 0.5
+docker run http-load-tester --url http://192.168.111.28:8000 --find-breaking-point --duration=5 --max-qps 1000 --max-error-rate 0.01 --max-latency 0.5
 ```
 
 An example output of this command is:
 ```txt
 Beginning search for breaking point.
-Tested QPS: 500, Error Rate: 0.00%, Mean Latency: 3.517s
-Tested QPS: 250, Error Rate: 0.00%, Mean Latency: 1.974s
-Tested QPS: 125, Error Rate: 0.00%, Mean Latency: 1.188s
-Tested QPS: 62, Error Rate: 0.00%, Mean Latency: 0.703s
-Tested QPS: 31, Error Rate: 0.00%, Mean Latency: 0.372s
-Tested QPS: 46, Error Rate: 0.00%, Mean Latency: 0.496s
-Tested QPS: 54, Error Rate: 0.00%, Mean Latency: 0.602s
-Tested QPS: 50, Error Rate: 0.00%, Mean Latency: 0.577s
-Tested QPS: 48, Error Rate: 0.00%, Mean Latency: 0.536s
-Tested QPS: 47, Error Rate: 0.00%, Mean Latency: 0.521s
+Tested QPS: 500, Error Rate: 0.12%, Mean Latency: 0.026s
+Tested QPS: 750, Error Rate: 0.16%, Mean Latency: 0.033s
+Tested QPS: 875, Error Rate: 0.11%, Mean Latency: 0.027s
+Tested QPS: 938, Error Rate: 0.15%, Mean Latency: 0.042s
+Tested QPS: 969, Error Rate: 0.14%, Mean Latency: 0.030s
+Tested QPS: 985, Error Rate: 0.14%, Mean Latency: 0.035s
+Tested QPS: 993, Error Rate: 0.10%, Mean Latency: 0.040s
+Tested QPS: 997, Error Rate: 0.12%, Mean Latency: 0.028s
+Tested QPS: 999, Error Rate: 0.12%, Mean Latency: 0.030s
+Tested QPS: 1000, Error Rate: 0.32%, Mean Latency: 0.073s
 
-Breaking point found: 46 QPS
+Breaking point not found within range. The server had adequate performance at all levels of queries per second tested.
 
 Final test results:
-Results for http://apple.com
-Total requests: 368
-Total errors: 0
-Error rate: 0.000%
-Mean latency: 476.503 milliseconds
-Median latency: 449.405 milliseconds
-Min latency: 180.404 milliseconds
-Max latency: 1268.814 milliseconds
+Results for http://192.168.111.28:8000
+Total requests: 5000
+Total errors: 7
+Error rate: 0.140%
+Mean latency: 31.362 milliseconds
+Median latency: 7.566 milliseconds
+Min latency: 4.511 milliseconds
+Max latency: 15017.129 milliseconds
 
 Status code distribution:
-  200: 368
+  200: 4993
+  error: 7
 ```
 
 ## CLI documentation
 The documentation for the CLI is below. 
 ```txt
-usage: load_tester.py [-h] [--qps QPS] [--duration DURATION]
+
+usage: load_tester.py [-h] [--url URL] [--qps QPS] [--duration DURATION]
                       [--find-breaking-point] [--max-qps MAX_QPS]
                       [--max-error-rate MAX_ERROR_RATE]
-                      [--max-latency MAX_LATENCY]
-                      url
+                      [--max-latency MAX_LATENCY] [--verbose]
+                      [--retries RETRIES]
 
 HTTP Load Testing Tool
 
-positional arguments:
-  url                   Target URL to test
-
 optional arguments:
   -h, --help            show this help message and exit
+  --url URL             Target URL to test
   --qps QPS             Queries per second for a single test
   --duration DURATION   Test duration in seconds
   --find-breaking-point
@@ -107,4 +107,7 @@ optional arguments:
   --max-latency MAX_LATENCY
                         Maximum acceptable mean latency in seconds when
                         finding breaking point
+  --verbose             Print verbose output including error messages
+  --retries RETRIES     Number of retry attempts for a failed request
+
 ```
