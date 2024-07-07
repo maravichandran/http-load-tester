@@ -1,6 +1,5 @@
 import asynctest
 from unittest.mock import patch, AsyncMock, MagicMock
-import asyncio
 from app.load_test_stats import LoadTestStats
 from app.load_tester import HTTPLoadTester
 
@@ -36,17 +35,31 @@ class TestHTTPLoadTester(asynctest.TestCase):
 
         self.assertEqual(1, len(self.tester.load_test_stats.results['error']))
 
-    @asynctest.patch('asyncio.sleep', return_value=None)
-    @asynctest.patch('time.time')
-    @asynctest.patch('aiohttp.ClientSession')
-    @asynctest.patch('app.load_tester.HTTPLoadTester.make_request')
-    async def test_generate_load(self, mock_make_request, mock_session, mock_time, mock_sleep):
-        mock_time.side_effect = [0, 0.5, 1, 1.5, 2]  # Simulate time passing
-        mock_make_request.return_value = None
+    @patch('asyncio.sleep', new_callable=AsyncMock)
+    @patch('app.load_tester.HTTPLoadTester.make_request', new_callable=AsyncMock)
+    @patch('aiohttp.ClientSession')
+    async def test_generate_load_basic(self, mock_session, mock_make_request, mock_sleep):
+        # Create a mock time function that increments by 0.01 seconds each call
+        mock_time = MagicMock()
+        mock_time.side_effect = [0.01 * i for i in range(600)]  # Simulate 6 seconds with fine granularity
 
-        await self.tester.generate_load(1)  # Run for 1 second
+        with patch('time.time', mock_time):
+            tester = HTTPLoadTester(url="http://example.com", qps=5)
+            await tester.generate_load(duration=5)
 
-        self.assertEqual(mock_make_request.call_count, self.qps)
+        self.assertEqual(25, mock_make_request.call_count)
+
+    async def test_generate_load_raises_value_error(self):
+        # Create a new tester instance with None qps
+        tester_with_none_qps = HTTPLoadTester(self.url, None)
+
+        with self.assertRaises(ValueError) as context:
+            await tester_with_none_qps.generate_load(duration=3)
+
+        self.assertEqual(
+            str(context.exception),
+            "QPS must be specified either in the constructor or as a method argument"
+        )
 
     @asynctest.patch('app.load_tester.HTTPLoadTester.print_results')
     async def test_find_breaking_point(self, mock_print_results):

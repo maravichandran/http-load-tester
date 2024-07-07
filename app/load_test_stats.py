@@ -16,6 +16,7 @@ class LoadTestStats:
         self.median_latency = -1
         self.min_latency = -1
         self.max_latency = -1
+        self.error_set = set()
 
     def add_result(self, status: str, latency: float) -> None:
         """Add a single result to the stats."""
